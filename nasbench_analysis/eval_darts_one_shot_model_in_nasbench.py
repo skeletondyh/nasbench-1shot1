@@ -151,5 +151,5 @@ def main(nasbench):
 
 if __name__ == '__main__':
     nasbench = NasbenchWrapper(
-        dataset_file='/home/siemsj/projects/darts_weight_sharing_analysis/nasbench_analysis/nasbench_data/108_e/nasbench_full.tfrecord')
+        dataset_file='/home/ydingau/data/nasbench_only108.tfrecord')
     main(nasbench=nasbench)
