@@ -14,7 +14,7 @@ import torch.nn as nn
 import torch.utils
 import torchvision.datasets as dset
 
-from nasbench_analysis import eval_darts_one_shot_model_in_nasbench as naseval
+#from nasbench_analysis import eval_darts_one_shot_model_in_nasbench as naseval
 from nasbench_analysis.search_spaces.search_space_1 import SearchSpace1
 from nasbench_analysis.search_spaces.search_space_2 import SearchSpace2
 from nasbench_analysis.search_spaces.search_space_3 import SearchSpace3
@@ -53,7 +53,8 @@ parser.add_argument('--warm_start_epochs', type=int, default=0,
                     help='Warm start one-shot model before starting architecture updates.')
 args = parser.parse_args()
 
-args.save = 'experiments/darts/search_space_{}/search-{}-{}-{}-{}'.format(args.search_space, args.save,
+method_name = 'darts_second' if args.unrolled else 'darts'  
+args.save = 'experiments/' + method_name + '/search_space_{}/search-{}-{}-{}-{}'.format(args.search_space, args.save,
                                                                           time.strftime("%Y%m%d-%H%M%S"), args.seed,
                                                                           args.search_space)
 utils.create_exp_dir(args.save, scripts_to_save=glob.glob('*.py'))
@@ -135,8 +136,8 @@ def main():
     architect = Architect(model, args)
 
     for epoch in range(args.epochs):
-        scheduler.step()
-        lr = scheduler.get_lr()[0]
+        #scheduler.step()
+        lr = scheduler.get_last_lr()[0]
         # increase the cutout probability linearly throughout search
         train_transform.transforms[-1].cutout_prob = args.cutout_prob * epoch / (args.epochs - 1)
         logging.info('epoch %d lr %e cutout_prob %e', epoch, lr,
@@ -154,11 +155,13 @@ def main():
         filepath = os.path.join(args.save, 'one_shot_model_{}.obj'.format(epoch))
         torch.save(model.state_dict(), filepath)
 
-        logging.info('architecture', numpy_tensor_list)
+        #logging.info('architecture', numpy_tensor_list)
 
         # training
         train_acc, train_obj = train(train_queue, valid_queue, model, architect, criterion, optimizer, lr, epoch)
         logging.info('train_acc %f', train_acc)
+
+        scheduler.step()
 
         # validation
         valid_acc, valid_obj = infer(valid_queue, model, criterion)
@@ -166,7 +169,7 @@ def main():
 
         utils.save(model, os.path.join(args.save, 'weights.pt'))
 
-    logging.info('STARTING EVALUATION')
+    '''logging.info('STARTING EVALUATION')
     test, valid, runtime, params = naseval.eval_one_shot_model(config=args.__dict__,
                                                                model=arch_filename)
     index = np.random.choice(list(range(3)))
@@ -175,7 +178,7 @@ def main():
                     valid[index],
                     runtime[index],
                     params[index])
-                 )
+                 )'''
 
 
 def train(train_queue, valid_queue, model, architect, criterion, optimizer, lr, epoch):
