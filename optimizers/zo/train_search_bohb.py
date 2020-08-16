@@ -16,12 +16,12 @@ import torch.utils
 from nasbench_analysis.search_spaces.search_space_1 import SearchSpace1
 from nasbench_analysis.search_spaces.search_space_2 import SearchSpace2
 from nasbench_analysis.search_spaces.search_space_3 import SearchSpace3
-from optimizers.darts import utils
-from optimizers.darts.architect import Architect
-from optimizers.darts.model_search import Network
+from optimizers.zo import utils
+from optimizers.zo.architect import Architect
+from optimizers.zo.model_search import Network
 
 parser = argparse.ArgumentParser("cifar")
-parser.add_argument('--data', type=str, default='./data', help='location of the darts corpus')
+parser.add_argument('--data', type=str, default='./data', help='location of the zo corpus')
 parser.add_argument('--batch_size', type=int, default=96, help='batch size')
 parser.add_argument('--learning_rate', type=float, default=0.025, help='init learning rate')
 parser.add_argument('--learning_rate_min', type=float, default=0.001, help='min learning rate')
@@ -40,7 +40,7 @@ parser.add_argument('--drop_path_prob', type=float, default=0.3, help='drop path
 parser.add_argument('--save', type=str, default='EXP', help='experiment name')
 parser.add_argument('--seed', type=int, default=2, help='random_ws seed')
 parser.add_argument('--grad_clip', type=float, default=5, help='gradient clipping')
-parser.add_argument('--train_portion', type=float, default=0.5, help='portion of training darts')
+parser.add_argument('--train_portion', type=float, default=0.5, help='portion of training zo')
 parser.add_argument('--unrolled', action='store_true', default=False, help='use one-step unrolled validation loss')
 parser.add_argument('--arch_learning_rate', type=float, default=3e-4, help='learning rate for arch encoding')
 parser.add_argument('--arch_weight_decay', type=float, default=1e-3, help='weight decay for arch encoding')

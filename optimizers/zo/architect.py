@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+import copy
 from torch.autograd import Variable
 
 
@@ -13,9 +14,11 @@ class Architect(object):
         self.network_momentum = args.momentum
         self.network_weight_decay = args.weight_decay
         self.model = model
-        self.optimizer = torch.optim.Adam(self.model.arch_parameters(),
-                                          lr=args.arch_learning_rate, betas=(0.5, 0.999),
-                                          weight_decay=args.arch_weight_decay)
+        self.arch_lr = args.arch_learning_rate
+        self.explore = args.explore
+        #self.optimizer = torch.optim.Adam(self.model.arch_parameters(),
+        #                                  lr=args.arch_learning_rate, betas=(0.5, 0.999),
+        #                                  weight_decay=args.arch_weight_decay)
 
     def _train_loss(self, model, input, target):
         return model._loss(input, target)
@@ -36,12 +39,74 @@ class Architect(object):
         return unrolled_model
 
     def step(self, input_train, target_train, input_valid, target_valid, eta, network_optimizer, unrolled):
-        self.optimizer.zero_grad()
+        '''self.optimizer.zero_grad()
         if unrolled:
             self._backward_step_unrolled(input_train, target_train, input_valid, target_valid, eta, network_optimizer)
         else:
             self._backward_step(input_valid, target_valid)
-        self.optimizer.step()
+        self.optimizer.step()'''
+        loss_val = self._val_loss(self.model, input_valid, target_valid)
+        grads_arch = torch.autograd.grad(loss_val, self.model.arch_parameters())
+        sum_square = sum(torch.sum(torch.square(each)) for each in grads_arch)
+        grads_arch = [each / torch.sqrt(sum_square) for each in grads_arch]
+        params = copy.deepcopy(self.model.state_dict())
+
+        ## one direction
+        for a, g in zip(self.model.arch_parameters(), grads_arch):
+            a.data.add_(g, alpha=self.explore)
+        
+        loss_train = self._train_loss(self.model, input_train, target_train)
+        theta = _concat(self.model.parameters()).data
+        try:
+            moment = _concat(network_optimizer.state[v]['momentum_buffer'] for v in self.model.parameters()).mul_(
+                self.network_momentum)
+        except:
+            moment = torch.zeros_like(theta)
+        dtheta = _concat(torch.autograd.grad(loss_train, self.model.parameters())).data + self.network_weight_decay * theta
+        update = moment + dtheta
+
+        offset = 0
+        for p in self.model.parameters():
+            length = np.prod(p.size())
+            p.data.sub_(update[offset:offset + length].view(p.size()), alpha=eta)
+            offset += length
+        
+        with torch.no_grad():
+            eval_along = self._val_loss(self.model, input_valid, target_valid)
+        
+        self.model.load_state_dict(params)
+
+        ## another
+        for a, g in zip(self.model.arch_parameters(), grads_arch):
+            a.data.sub_(g, alpha=2*self.explore)
+        
+        loss_train = self._train_loss(self.model, input_train, target_train)
+        theta = _concat(self.model.parameters()).data
+        try:
+            moment = _concat(network_optimizer.state[v]['momentum_buffer'] for v in self.model.parameters()).mul_(
+                self.network_momentum)
+        except:
+            moment = torch.zeros_like(theta)
+        dtheta = _concat(torch.autograd.grad(loss_train, self.model.parameters())).data + self.network_weight_decay * theta
+        update = moment + dtheta
+
+        offset = 0
+        for p in self.model.parameters():
+            length = np.prod(p.size())
+            p.data.sub_(update[offset:offset + length].view(p.size()), alpha=eta)
+            offset += length
+        
+        with torch.no_grad():
+            eval_oppsite = self._val_loss(self.model, input_valid, target_valid)
+        
+        self.model.load_state_dict(params)
+
+        ## go back
+        diff = (eval_along - eval_oppsite).item()
+
+        for a, g in zip(self.model.arch_parameters(), grads_arch):
+            a.data.add_(g, alpha=self.explore)
+            a.data.sub_(g, alpha=self.arch_lr * diff / (2 * self.explore))
 
     def _backward_step(self, input_valid, target_valid):
         loss = self._val_loss(self.model, input_valid, target_valid)

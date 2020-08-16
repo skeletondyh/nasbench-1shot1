@@ -2,8 +2,8 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 
 from nasbench_analysis.search_spaces.search_space_1 import SearchSpace1
-from optimizers.darts.genotypes import PRIMITIVES
-from optimizers.darts.operations import *
+from optimizers.zo.genotypes import PRIMITIVES
+from optimizers.zo.operations import *
 
 
 class MixedOp(nn.Module):

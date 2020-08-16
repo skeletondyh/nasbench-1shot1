@@ -13,11 +13,11 @@ import torch.utils
 import torchvision.datasets as dset
 from torch.autograd import Variable
 
-from optimizers.darts import utils
-from optimizers.darts.model import NetworkCIFAR as Network
+from optimizers.zo import utils
+from optimizers.zo.model import NetworkCIFAR as Network
 
 parser = argparse.ArgumentParser("cifar")
-parser.add_argument('--darts', type=str, default='../darts', help='location of the darts corpus')
+parser.add_argument('--zo', type=str, default='../zo', help='location of the zo corpus')
 parser.add_argument('--batch_size', type=int, default=96, help='batch size')
 parser.add_argument('--learning_rate', type=float, default=0.025, help='init learning rate')
 parser.add_argument('--momentum', type=float, default=0.9, help='momentum')
@@ -35,7 +35,7 @@ parser.add_argument('--cutout_length', type=int, default=16, help='cutout length
 parser.add_argument('--drop_path_prob', type=float, default=0.2, help='drop path probability')
 parser.add_argument('--save', type=str, default='EXP', help='experiment name')
 parser.add_argument('--seed', type=int, default=0, help='random_ws seed')
-parser.add_argument('--arch', type=str, default='DARTS', help='which architecture to use')
+parser.add_argument('--arch', type=str, default='zo', help='which architecture to use')
 parser.add_argument('--grad_clip', type=float, default=5, help='gradient clipping')
 args = parser.parse_args()
 

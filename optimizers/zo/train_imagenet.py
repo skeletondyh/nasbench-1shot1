@@ -14,11 +14,11 @@ import torchvision.datasets as dset
 import torchvision.transforms as transforms
 from torch.autograd import Variable
 
-from optimizers.darts import utils
-from optimizers.darts.model import NetworkImageNet as Network
+from optimizers.zo import utils
+from optimizers.zo.model import NetworkImageNet as Network
 
 parser = argparse.ArgumentParser("imagenet")
-parser.add_argument('--darts', type=str, default='../darts/imagenet/', help='location of the darts corpus')
+parser.add_argument('--zo', type=str, default='../zo/imagenet/', help='location of the zo corpus')
 parser.add_argument('--batch_size', type=int, default=128, help='batch size')
 parser.add_argument('--learning_rate', type=float, default=0.1, help='init learning rate')
 parser.add_argument('--momentum', type=float, default=0.9, help='momentum')
@@ -33,12 +33,12 @@ parser.add_argument('--auxiliary_weight', type=float, default=0.4, help='weight 
 parser.add_argument('--drop_path_prob', type=float, default=0, help='drop path probability')
 parser.add_argument('--save', type=str, default='EXP', help='experiment name')
 parser.add_argument('--seed', type=int, default=0, help='random_ws seed')
-parser.add_argument('--arch', type=str, default='DARTS', help='which architecture to use')
+parser.add_argument('--arch', type=str, default='zo', help='which architecture to use')
 parser.add_argument('--grad_clip', type=float, default=5., help='gradient clipping')
 parser.add_argument('--label_smooth', type=float, default=0.1, help='label smoothing')
 parser.add_argument('--gamma', type=float, default=0.97, help='learning rate decay')
 parser.add_argument('--decay_period', type=int, default=1, help='epochs between two learning rate decays')
-parser.add_argument('--parallel', action='store_true', default=False, help='darts parallelism')
+parser.add_argument('--parallel', action='store_true', default=False, help='zo parallelism')
 args = parser.parse_args()
 
 args.save = 'eval-{}-{}'.format(args.save, time.strftime("%Y%m%d-%H%M%S"))

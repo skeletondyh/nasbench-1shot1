@@ -1,5 +1,5 @@
-from optimizers.darts.operations import *
-from optimizers.darts.utils import drop_path
+from optimizers.zo.operations import *
+from optimizers.zo.utils import drop_path
 
 
 class Cell(nn.Module):
